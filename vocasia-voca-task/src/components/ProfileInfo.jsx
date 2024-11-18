@@ -1,4 +1,3 @@
-// src/components/ProfileInfo.jsx
 import React from 'react';
 import {Logout, Edit} from '../assets'
 import {Button, ProfileImg} from './index'

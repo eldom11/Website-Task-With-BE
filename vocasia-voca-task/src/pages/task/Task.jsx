@@ -1,24 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {TaskCard, ProfileInfo, Input, Button} from '../../components'
-import {Add, Profile} from '../../assets'
+import { TaskCard, ProfileInfo, Input, Button } from '../../components'
+import { Add } from '../../assets'
+import { getTasks } from '../../API/task'
+import { getUserProfile } from '../../API/user'
 
 
 function Task() {
-  const [tasks, setTasks] = useState([
-    { text: "To Study React Fundamental", done: false },
-    { text: "To Learn JavaScript", done: false },
-    { text: "Complete Project", done: false },
-    { text: "Watch the Vocasia LMS Video", done: false },
-  ]);
-  const [taskDone, setTaskDone] = useState([
-    { text: "Pray 5 Times a Day", done: true }
-  ]);
-  const [name, setName] = useState(localStorage.getItem('name') || "John Doe");
-  const [avatarUrl, setAvatarUrl] = useState(localStorage.getItem('avatarUrl') || Profile);
+  const [tasks, setTasks] = useState([]);
+  const [taskDone, setTaskDone] = useState([]);
+  const [name, setName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [newTask, setNewTask] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   const navigate = useNavigate();
+  const token = localStorage.getItem('token')
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/');
+    } else {
+      async function loadProfileAndTasks() {
+        try {
+          const user = await getUserProfile(token);
+          if (user) {
+            setName(user.name || '');
+            setAvatarUrl(user.photo_url || '');
+          } else {
+            setErrorMessage(user.message || 'Error fetching user profile');
+          }
+
+          await loadTasks(); 
+        } catch (error) {
+          console.error('Error fetching user profile or tasks:', error);
+          setErrorMessage('Error fetching data');
+        }
+      }
+
+      loadProfileAndTasks();
+    }
+  }, [token, navigate]);
+
+  const loadTasks = async () => {
+    try {
+      const taskData = await getTasks(token);
+      if (Array.isArray(taskData.data)) {
+        setTasks(taskData.data.filter((task) => task.isDone === false));
+        setTaskDone(taskData.data.filter((task) => task.isDone === true));
+      } else {
+        console.error('Error: Data is not an array');
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
+  };
 
   const handleAddTask = () => {
     if (newTask.trim() !== "") {
@@ -77,28 +113,34 @@ function Task() {
 
           <div>
             <h2 className='font-bold text-white'>Tasks To Do - {tasks.length}</h2>
-            {tasks.map((task, index) => (
-              !task.done && (
-                <TaskCard 
-                  key={index}
-                  task={task}
-                  onMarkDone={() => handleMarkDone(index)}
-                  onDelete={() => handleDelete(index)}
-                />
-              )
-            ))}
+            {tasks.length === 0 ? (
+              <p className="text-white">No tasks to do yet!</p>
+            ) : (
+              tasks.map((task) => (
+                task && task._id && !task.isDone && (
+                  <TaskCard
+                    key={task._id}
+                    task={task}
+                    onMarkDone={() => handleMarkDone(task._id)}
+                    onDelete={() => handleDelete(task._id)}
+                  />
+                )
+              ))
+            )}
           </div>
 
           <div className='mt-5'>
             <h2 className='font-bold text-white'>Done - {taskDone.length}</h2>
             {taskDone.length > 0 ? (
-              taskDone.map((task, index) => (
-                <div key={index} className='flex my-3 mx-0 p-2.5 items-center justify-between bg-emerald-950 rounded-md w-full h-14'>
-                  <h4 className='line-through text-teal-600'>{task.text}</h4>
-                </div>
+              taskDone.map((task) => (
+                task && task._id && (
+                  <div key={task._id} className="flex my-3 mx-0 p-2.5 items-center justify-between bg-emerald-950 rounded-md w-full h-14">
+                    <h4 className="line-through text-teal-600">{task.title}</h4>
+                  </div>
+                )
               ))
             ) : (
-              <p className='text-white'>No tasks done yet!</p>
+              <p className="text-white">No tasks done yet!</p>
             )}
           </div>
         </div>
