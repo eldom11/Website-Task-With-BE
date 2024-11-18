@@ -1,5 +1,6 @@
 const API_URL = "http://localhost:8080/api/tasks";
 
+// Sran mentor pake Fetch API
 export async function getTasks(token) {
   try {
     const response = await fetch(`${API_URL}`, {
