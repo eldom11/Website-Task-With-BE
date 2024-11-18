@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TaskCard, ProfileInfo, Input, Button } from '../../components'
 import { Add } from '../../assets'
-import { getTasks } from '../../API/task'
+import { getTasks, addTask } from '../../API/task'
 import { getUserProfile } from '../../API/user'
 
 
@@ -56,11 +56,15 @@ function Task() {
     }
   };
 
-  const handleAddTask = () => {
-    if (newTask.trim() !== "") {
-      const newTaskObj = { text: newTask, done: false };
-      setTasks([...tasks, newTaskObj]);
-      setNewTask(""); 
+  const handleAddTask = async () => {
+    if (newTask.trim() !== '') {
+      try {
+        await addTask(token, newTask);
+        setNewTask('');
+        await loadTasks(); 
+      } catch (error) {
+        console.error('Error adding task:', error);
+      }
     }
   };
 
@@ -108,7 +112,13 @@ function Task() {
               onChange={(e) => setNewTask(e.target.value)}
               className={'w-80 mr-2 rounded-lg bg-gray-200 focus:bg-white focus:outline-none focus:border-2 border-none focus:border-black'}
             />
-            <Button className={'bg-emerald-400 p-1.5 shadow-lg shadow-black rounded-lg w-1/4 hover:bg-emerald-300 hover:shadow-none hover:translate-y-1 translate-y-0'} onClick={handleAddTask} title="Add Task"> <img src={Add} alt="Add" /> </Button>
+            <Button 
+              className={'bg-emerald-400 p-1.5 shadow-lg shadow-black rounded-lg w-1/4 hover:bg-emerald-300 hover:shadow-none hover:translate-y-1 translate-y-0'} 
+              onClick={handleAddTask} 
+              title="Add Task"
+            > 
+              <img src={Add} alt="Add" /> 
+            </Button>
           </div>
 
           <div>
