@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const ResponseAPI = require('../utils/response');
+const bcrypt = require('bcryptjs');
 const { jwtSecret, jwtExpiresIn } = require('../config/env');
 
 const generateToken = (id) => {
@@ -49,18 +50,19 @@ const userController = {
 
     async updateProfile(req, res) {
         try {
-            const { name, email, photo_url } = req.body;
+            const { name, email, photo_url, password } = req.body;
             const updateData = { name, email, photo_url };
 
-            if (req.body.password) {
-                updateData.password = req.body.password;
+            if (password) {
+                const hashedPassword = await bcrypt.hash(password, 12);
+                updateData.password = hashedPassword;
             }
 
             const user = await User.findByIdAndUpdate(
                 req.user._id,
                 updateData,
                 { new: true, runValidators: true }
-            ).select('-password');
+            ).select('-password'); 
 
             ResponseAPI.success(res, user);
         } catch (error) {
