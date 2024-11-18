@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TaskCard, ProfileInfo, Input, Button } from '../../components'
 import { Add } from '../../assets'
-import { getTasks, addTask } from '../../API/task'
+import { getTasks, addTask, markTaskDone, deleteTask } from '../../API/task'
 import { getUserProfile } from '../../API/user'
 
 
@@ -68,14 +68,22 @@ function Task() {
     }
   };
 
-  const handleMarkDone = (index) => {
-    const taskToMark = tasks[index];
-    setTasks(tasks.filter((_, i) => i !== index)); 
-    setTaskDone([...taskDone, { ...taskToMark, done: true }]);
+  const handleMarkDone = async (taskId) => {
+    try {
+      await markTaskDone(token, taskId);
+      await loadTasks(); 
+    } catch (error) {
+      console.error('Error marking task as done:', error);
+    }
   };
 
-  const handleDelete = (index) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+  const handleDelete = async (taskId) => {
+    try {
+      await deleteTask(token, taskId);
+      await loadTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   const handleEditProfile = () => {

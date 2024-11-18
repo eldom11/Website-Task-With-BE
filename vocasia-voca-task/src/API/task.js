@@ -42,3 +42,39 @@ export async function addTask(token, newTask) {
     throw error;
   }
 }
+
+export async function markTaskDone(token, taskId) {
+  try {
+    const response = await fetch(`${API_URL}/${taskId}/done`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to mark task as done");
+    }
+  } catch (error) {
+    console.error("Error marking task as done:", error);
+    throw error;
+  }
+}
+
+export async function deleteTask(token, taskId) {
+  try {
+    const response = await fetch(`${API_URL}/${taskId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete task");
+    }
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    throw error;
+  }
+}
