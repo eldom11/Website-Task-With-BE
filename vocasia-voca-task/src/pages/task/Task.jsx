@@ -91,8 +91,7 @@ function Task() {
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem('email');
-    localStorage.removeItem('password');
+    localStorage.removeItem('token')
     navigate('/');
   };
 
